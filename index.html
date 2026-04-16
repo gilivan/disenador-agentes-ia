@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Diseñador de Agentes IA</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #1E2761;
+    --blue: #2B4FBD;
+    --accent: #00C2CB;
+    --white: #FFFFFF;
+    --light: #EEF2FF;
+    --gray: #64748B;
+    --dark: #0F172A;
+    --gold: #F59E0B;
+    --green: #10B981;
+    --coral: #F43F5E;
+    --bg: #F8FAFC;
+    --border: #E2E8F0;
+    --text: #1E293B;
+    --muted: #64748B;
+    --info-bg: #EFF6FF;
+    --info-border: #BFDBFE;
+    --info-text: #1D4ED8;
+    --success-bg: #F0FDF4;
+    --success-text: #166534;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  .top-bar { background: var(--navy); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .top-bar-title { color: white; font-size: 15px; font-weight: 600; letter-spacing: 0.02em; }
+  .top-bar-sub { color: #CADCFC; font-size: 12px; margin-top: 2px; }
+  .top-bar-badge { background: rgba(0,194,203,0.2); border: 1px solid var(--accent); color: var(--accent); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.04em; }
+
+  .container { max-width: 680px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+
+  .steps-bar { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 2rem; }
+  .step-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .step-item.active { color: var(--text); font-weight: 600; }
+  .step-item.done { color: var(--green); }
+  .step-circle { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--border); background: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: var(--muted); flex-shrink: 0; }
+  .step-item.active .step-circle { border-color: var(--navy); color: var(--navy); }
+  .step-item.done .step-circle { border-color: var(--green); background: var(--success-bg); color: var(--green); }
+  .step-sep { color: var(--border); font-size: 14px; }
+
+  .card { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .card-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1.1rem; }
+
+  .field { margin-bottom: 1rem; }
+  .field:last-child { margin-bottom: 0; }
+  .field label { display: block; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .field label span { font-weight: 400; color: var(--muted); }
+  input[type="text"], textarea {
+    width: 100%; font-size: 14px; padding: 10px 14px;
+    border: 1px solid var(--border); border-radius: 10px;
+    background: var(--bg); color: var(--text);
+    font-family: inherit; transition: border-color 0.15s, background 0.15s;
+    line-height: 1.5;
+  }
+  input[type="text"]:focus, textarea:focus { outline: none; border-color: var(--blue); background: white; }
+  textarea { resize: vertical; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .skill-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .skill-tag { display: flex; align-items: center; gap: 8px; padding: 9px 13px; border: 1px solid var(--border); border-radius: 10px; cursor: pointer; font-size: 13px; color: var(--muted); background: var(--bg); transition: all 0.15s; user-select: none; }
+  .skill-tag:hover { border-color: #94A3B8; color: var(--text); background: white; }
+  .skill-tag.selected { background: var(--info-bg); border-color: var(--info-border); color: var(--info-text); }
+  .check-circle { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; background: white; transition: all 0.15s; }
+  .skill-tag.selected .check-circle { background: var(--info-bg); border-color: var(--info-border); color: var(--info-text); }
+
+  .btn-primary { width: 100%; padding: 12px; font-size: 14px; font-weight: 600; border: none; border-radius: 10px; background: var(--navy); color: white; cursor: pointer; transition: all 0.15s; font-family: inherit; letter-spacing: 0.01em; }
+  .btn-primary:hover { background: var(--blue); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary { padding: 10px 18px; font-size: 13px; font-weight: 500; border: 1px solid var(--border); border-radius: 10px; background: white; color: var(--muted); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .btn-secondary:hover { background: var(--bg); color: var(--text); }
+  .btn-row { display: flex; gap: 8px; }
+  .btn-row .btn-primary { flex: 1; }
+
+  .loading-card { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; text-align: center; }
+  .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--navy); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-label { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .loading-sub { font-size: 12px; color: var(--muted); }
+
+  .result-card { background: white; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .result-header { background: var(--navy); padding: 1.25rem 1.5rem; }
+  .result-header-badge { font-size: 11px; color: #CADCFC; font-weight: 500; margin-bottom: 4px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .result-agent-name { font-size: 22px; font-weight: 700; color: white; }
+  .result-body { padding: 1.5rem; }
+  .result-section { margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
+  .result-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+  .result-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 8px; }
+  .result-text { font-size: 14px; color: var(--text); line-height: 1.7; white-space: pre-wrap; }
+  .skill-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .skill-chip { font-size: 12px; padding: 4px 11px; border-radius: 20px; background: var(--info-bg); color: var(--info-text); border: 1px solid var(--info-border); font-weight: 500; }
+  .impact-box { background: var(--success-bg); border: 1px solid #BBF7D0; border-radius: 10px; padding: 12px 14px; font-size: 14px; color: #166534; line-height: 1.7; white-space: pre-wrap; }
+  .next-box { background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 10px; padding: 12px 14px; font-size: 14px; color: #92400E; line-height: 1.7; white-space: pre-wrap; }
+
+  .reset-row { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+
+  .error-box { background: #FFF1F2; border: 1px solid #FECDD3; border-radius: 10px; padding: 14px; font-size: 13px; color: #9F1239; margin-bottom: 1rem; line-height: 1.6; }
+
+  .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  @media (max-width: 500px) {
+    .two-col { grid-template-columns: 1fr; }
+    .skill-grid { grid-template-columns: 1fr; }
+    .top-bar { flex-direction: column; align-items: flex-start; gap: 6px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div>
+    <div class="top-bar-title">Curso Flash · Inteligencia Artificial</div>
+    <div class="top-bar-sub">Agentes IA & Skills — Taller Práctico</div>
+  </div>
+  <div class="top-bar-badge">BLOQUE 04</div>
+</div>
+
+<div class="container">
+
+  <div class="steps-bar" id="steps-bar">
+    <div class="step-item active" id="si1"><div class="step-circle" id="sc1">1</div>Tu contexto</div>
+    <div class="step-sep">—</div>
+    <div class="step-item" id="si2"><div class="step-circle" id="sc2">2</div>Skills</div>
+    <div class="step-sep">—</div>
+    <div class="step-item" id="si3"><div class="step-circle" id="sc3">3</div>Tu Agente</div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div id="step1">
+    <div class="card">
+      <div class="card-title">Tu empresa y el reto</div>
+      <div class="two-col">
+        <div class="field">
+          <label>Empresa <span>(o sector)</span></label>
+          <input type="text" id="empresa" placeholder="Ej: Avinal, Flamingo..." />
+        </div>
+        <div class="field">
+          <label>Tu rol</label>
+          <input type="text" id="rol" placeholder="Ej: Gerente General, CFO..." />
+        </div>
+      </div>
+      <div class="field" style="margin-top:4px">
+        <label>¿Qué tarea te consume tiempo innecesariamente? <span>(sé específico)</span></label>
+        <textarea id="reto" rows="3" placeholder="Ej: Cada semana reviso manualmente contratos de proveedores para detectar cláusulas de riesgo. Me toma 4 horas y siempre hay algo que se me escapa..."></textarea>
+      </div>
+      <div class="field">
+        <label>Resultado ideal <span>(¿qué debería entregarte el Agente?)</span></label>
+        <textarea id="resultado" rows="2" placeholder="Ej: Un resumen con las 3 cláusulas más riesgosas y una recomendación de acción para cada una."></textarea>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="goStep2()">Continuar →</button>
+  </div>
+
+  <!-- STEP 2 -->
+  <div id="step2" style="display:none">
+    <div class="card">
+      <div class="card-title">Elige las Skills de tu Agente</div>
+      <p class="hint" style="margin-bottom:14px; font-size:13px; color:var(--muted);">Selecciona todas las que necesite para resolver tu reto</p>
+      <div class="skill-grid">
+        <div class="skill-tag" onclick="toggleSkill(this)" data-skill="Leer y analizar documentos"><div class="check-circle">✓</div>Leer y analizar documentos</div>
+        <div class="skill-tag" onclick="toggleSkill(this)" data-skill="Buscar información en internet"><div class="check-circle">✓</div>Buscar en internet</div>
+        <div class="skill-tag" onclick="toggleSkill(this)" data-skill="Analizar datos y cifras (Excel, ERP)"><div class="check-circle">✓</div>Analizar datos y cifras</div>
+        <div class="skill-tag" onclick="toggleSkill(this)" data-skill="Redactar reportes y comunicados"><div class="check-circle">✓</div>Redactar reportes</div>
+        <div class="skill-tag" onclick="toggleSkill(this)" data-skill="Conectarse con sistemas internos (ERP, CRM)"><div class="check-circle">✓</div>Conectar con sistemas</div>
+        <div class="skill-tag" onclick="toggleSkill(this)" data-skill="Enviar alertas y notificaciones"><div class="check-circle">✓</div>Enviar alertas</div>
+        <div class="skill-tag" onclick="toggleSkill(this)" data-skill="Comparar y evaluar opciones"><div class="check-circle">✓</div>Comparar opciones</div>
+        <div class="skill-tag" onclick="toggleSkill(this)" data-skill="Monitorear indicadores y KPIs"><div class="check-circle">✓</div>Monitorear KPIs</div>
+        <div class="skill-tag" onclick="toggleSkill(this)" data-skill="Resumir y sintetizar información compleja"><div class="check-circle">✓</div>Resumir información</div>
+        <div class="skill-tag" onclick="toggleSkill(this)" data-skill="Proponer recomendaciones y decisiones"><div class="check-circle">✓</div>Recomendar acciones</div>
+      </div>
+      <div class="field" style="margin-top:16px">
+        <label>Sistemas que debe conectar <span>(opcional)</span></label>
+        <input type="text" id="sistemas" placeholder="Ej: correo, WhatsApp, SAP, Excel, Google Drive..." />
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goStep1()">← Volver</button>
+      <button class="btn-primary" onclick="generateAgent()">Diseñar mi Agente →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div id="step3" style="display:none">
+
+    <div id="loading-state" class="loading-card">
+      <div class="spinner"></div>
+      <div class="loading-label" id="loading-label">Diseñando tu Agente...</div>
+      <div class="loading-sub">La IA está trabajando para ti</div>
+    </div>
+
+    <div id="result-state" style="display:none">
+      <div class="reset-row">
+        <button class="btn-secondary" onclick="resetAll()">← Diseñar otro Agente</button>
+      </div>
+      <div class="result-card">
+        <div class="result-header">
+          <div class="result-header-badge" id="res-badge"></div>
+          <div class="result-agent-name" id="res-nombre"></div>
+        </div>
+        <div class="result-body">
+          <div class="result-section">
+            <div class="result-label">Qué hace este Agente</div>
+            <div class="result-text" id="res-que-hace"></div>
+          </div>
+          <div class="result-section">
+            <div class="result-label">Skills asignadas</div>
+            <div class="skill-chips" id="res-skills"></div>
+          </div>
+          <div class="result-section">
+            <div class="result-label">Cómo funciona paso a paso</div>
+            <div class="result-text" id="res-pasos"></div>
+          </div>
+          <div class="result-section">
+            <div class="result-label">Impacto estimado</div>
+            <div class="impact-box" id="res-impacto"></div>
+          </div>
+          <div class="result-section">
+            <div class="result-label">Primer paso para implementarlo esta semana</div>
+            <div class="next-box" id="res-primer-paso"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="error-state" style="display:none">
+      <div class="error-box" id="error-msg"></div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="goStep2()">← Volver e intentar</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+const API_KEY = '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';
+let selectedSkills = [];
+let formData = {};
+
+function toggleSkill(el) {
+  el.classList.toggle('selected');
+  const skill = el.dataset.skill;
+  if (el.classList.contains('selected')) {
+    if (!selectedSkills.includes(skill)) selectedSkills.push(skill);
+  } else {
+    selectedSkills = selectedSkills.filter(s => s !== skill);
+  }
+}
+
+function setStep(n) {
+  document.getElementById('step1').style.display = n === 1 ? 'block' : 'none';
+  document.getElementById('step2').style.display = n === 2 ? 'block' : 'none';
+  document.getElementById('step3').style.display = n === 3 ? 'block' : 'none';
+  for (let i = 1; i <= 3; i++) {
+    const si = document.getElementById('si' + i);
+    const sc = document.getElementById('sc' + i);
+    si.className = 'step-item';
+    sc.className = 'step-circle';
+    if (i < n) { si.className = 'step-item done'; sc.textContent = '✓'; }
+    else if (i === n) { si.className = 'step-item active'; sc.textContent = i; }
+    else { sc.textContent = i; }
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goStep1() { setStep(1); }
+
+function goStep2() {
+  const empresa = document.getElementById('empresa').value.trim();
+  const reto = document.getElementById('reto').value.trim();
+  const resultado = document.getElementById('resultado').value.trim();
+  if (!empresa) { alert('Por favor ingresa el nombre de tu empresa o sector.'); return; }
+  if (!reto) { alert('Por favor describe la tarea que te consume tiempo.'); return; }
+  if (!resultado) { alert('Por favor describe el resultado que esperas del Agente.'); return; }
+  formData = { empresa, reto, resultado, rol: document.getElementById('rol').value.trim() };
+  setStep(2);
+}
+
+async function generateAgent() {
+  if (selectedSkills.length === 0) {
+    alert('Selecciona al menos una skill para tu Agente.');
+    return;
+  }
+  formData.skills = [...selectedSkills];
+  formData.sistemas = document.getElementById('sistemas').value.trim();
+
+  setStep(3);
+  document.getElementById('loading-state').style.display = 'block';
+  document.getElementById('result-state').style.display = 'none';
+  document.getElementById('error-state').style.display = 'none';
+
+  const labels = ['Diseñando tu Agente...', 'Asignando skills...', 'Construyendo el plan...', 'Calculando impacto...'];
+  let li = 0;
+  const lt = setInterval(() => {
+    li = (li + 1) % labels.length;
+    document.getElementById('loading-label').textContent = labels[li];
+  }, 1800);
+
+  const prompt = `Eres un experto en diseño de Agentes IA para alta dirección empresarial en Colombia.
+
+Un directivo de ${formData.empresa}${formData.rol ? ` (${formData.rol})` : ''} quiere diseñar su primer Agente IA.
+
+RETO: ${formData.reto}
+
+RESULTADO ESPERADO: ${formData.resultado}
+
+SKILLS SELECCIONADAS: ${formData.skills.join(', ')}
+
+${formData.sistemas ? `SISTEMAS A CONECTAR: ${formData.sistemas}` : ''}
+
+Diseña el Agente IA. Responde ÚNICAMENTE con un objeto JSON válido, sin markdown, sin texto adicional, sin bloques de código:
+{
+  "nombre": "nombre creativo y profesional del agente (máx 5 palabras, en español)",
+  "que_hace": "descripción ejecutiva en 2-3 oraciones de qué hace este agente y qué problema resuelve",
+  "pasos": "flujo de trabajo numerado con 4-5 pasos concretos, cada uno en una línea nueva con su número",
+  "impacto": "2-3 beneficios concretos y cuantificados: tiempo ahorrado, calidad mejorada, decisiones potenciadas",
+  "primer_paso": "una acción específica y concreta que el directivo puede hacer esta semana para empezar"
+}`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    clearInterval(lt);
+    const data = await resp.json();
+
+    if (!resp.ok) throw new Error(data.error?.message || `Error ${resp.status}`);
+
+    const raw = (data.content.find(b => b.type === 'text')?.text || '').trim();
+    const clean = raw.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+    const result = JSON.parse(clean);
+
+    document.getElementById('res-badge').textContent = formData.empresa + (formData.rol ? '  ·  ' + formData.rol : '');
+    document.getElementById('res-nombre').textContent = result.nombre || '';
+    document.getElementById('res-que-hace').textContent = result.que_hace || '';
+    document.getElementById('res-pasos').textContent = result.pasos || '';
+    document.getElementById('res-impacto').textContent = result.impacto || '';
+    document.getElementById('res-primer-paso').textContent = result.primer_paso || '';
+
+    const chipsEl = document.getElementById('res-skills');
+    chipsEl.innerHTML = '';
+    formData.skills.forEach(s => {
+      const chip = document.createElement('span');
+      chip.className = 'skill-chip';
+      chip.textContent = s;
+      chipsEl.appendChild(chip);
+    });
+
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('result-state').style.display = 'block';
+
+  } catch (e) {
+    clearInterval(lt);
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('error-state').style.display = 'block';
+    document.getElementById('error-msg').textContent = 'Ocurrió un error al conectar con la IA: ' + e.message + '. Verifica tu conexión e intenta nuevamente.';
+  }
+}
+
+function resetAll() {
+  selectedSkills = [];
+  formData = {};
+  document.querySelectorAll('.skill-tag.selected').forEach(el => el.classList.remove('selected'));
+  ['empresa','rol','reto','resultado','sistemas'].forEach(id => document.getElementById(id).value = '');
+  setStep(1);
+}
+</script>
+</body>
+</html>
